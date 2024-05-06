@@ -1,11 +1,18 @@
+"""
+Makes new txt files for train, validation, and test sets where xBD image and mask names are excluded.
+The xBD image and mask names are given in the `xbd_files.csv` file.
+"""
+
+import os
 import pandas as pd
 
-df = pd.read_csv("data\OpenEarthMap\OpenEarthMap_wo_xBD/xbd_files.csv", header=None).iloc[:, 1]
-
-exclude_locations = df.str.extract(r'^(.*)_(?=\d)', expand=False)
-exclude_locations = exclude_locations.unique()  # list of strings of locations to exclude from train.txt
 
 root_data_dir = "data/OpenEarthMap/OpenEarthMap_wo_xBD"
+
+df = pd.read_csv(os.path.join(root_data_dir, "xbd_files.csv"), header=None).iloc[:, 1]
+
+exclude_locations = df.str.extract(r'^(.*)_(?=\d)', expand=False)
+exclude_locations = exclude_locations.unique()
 
 for set_ in ("train", "val", "test"):
 

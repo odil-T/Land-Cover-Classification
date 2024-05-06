@@ -1,3 +1,7 @@
+"""
+Trains and saves a U-Net model on OpenEarthMap Dataset.
+"""
+
 import os
 import pickle
 import re
@@ -16,22 +20,40 @@ from torch.utils.data import Dataset, DataLoader
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
 current_datetime = datetime.datetime.now().strftime("%Y-%m-%d--%H-%M-%S")
-outputs_save_dir = f"models/unet_sem_seg_{current_datetime}"
 
-root_data_dir = "data/OpenEarthMap_modified/OpenEarthMap_wo_xBD"
+# Specify input and output paths
+root_data_dir = "data/OpenEarthMap/OpenEarthMap_wo_xBD"
 train_txt_file = "train_wo_xBD.txt"
 val_txt_file = "val_wo_xBD.txt"
+outputs_save_dir = f"models/unet_sem_seg_{current_datetime}"
 
 num_classes = 9
 height, width = 1024, 1024
 
 epochs = 50
-batch_size = 8
+batch_size = 4
 learning_rate = 1e-3
 
 
 class EarlyStopping():
+    """
+    Breaks model optimization loop if no specified amount of improvement is made after a specified number of epochs.
+
+    Attributes:
+        patience (int): The number of epochs allowed where improvement is not made.
+        min_delta (float): The minimum decrease in validation loss required after an epoch of training to be considered as an improvement.
+        patience_counter (int): The count of epochs where improvement is not made.
+        best_val_loss (float): The current lowest validation loss obtained.
+        early_stop (bool): Indicates whether the optimization loop should be stopped.
+    """
+
     def __init__(self, patience=3, min_delta=0.0):
+        """
+        Args:
+              patience (int): The number of epochs allowed where improvement is not made.
+              min_delta (float): The minimum decrease in validation loss required after an epoch of training to be considered as an improvement.
+        """
+
         self.patience = patience
         self.min_delta = min_delta
         self.patience_counter = 0
@@ -49,15 +71,44 @@ class EarlyStopping():
 
 
 class OpenEarthMapDataset(Dataset):
-    def __init__(self, root_data_dir, filenames_file, target_size=(1024, 1024)):
-        self.root_data_dir = root_data_dir
+    """
+    PyTorch Dataset implementation of the Open Earth Map Dataset.
 
+    Attributes:
+        root_data_dir (str): Root directory path of Open Earth Map Dataset from which to load images, masks, and txt files.
+        filenames (list): List of file names of images (and masks) that must be used for training. Both images and masks
+        have the same names. THey are stored in different directories.
+        target_size (tuple): Target size of the image and mask to be resized to for model training.
+    """
+
+    def __init__(self, root_data_dir, filenames_file, target_size=(1024, 1024)):
+        """
+        Args:
+            root_data_dir (str): Root directory path of Open Earth Map Dataset.
+            filenames_file (str): Name of txt file that stores the file names of images and masks to be used for training.
+            target_size (tuple): Target size of the image and mask to be resized to for model training.
+        """
+
+        self.root_data_dir = root_data_dir
         with open(os.path.join(root_data_dir, filenames_file), "r") as f:
             self.filenames = [re.sub(r'\n+$', '', line) for line in f.readlines()]  #  ["aachen_1.tif", "aachen_10.tif", ...]
-
         self.target_size = target_size
 
     def resize_and_pad(self, image, target_size, is_mask):
+        """
+        Resizes an image or mask to target size. The image/mask is resized along its longest dimension while maintaining
+        the aspect ratio. If necessary, padding is applied to the regions along the shorter dimension to match the given
+        target size. Black color is used for padding the image. Class ID 0 is used for padding the mask.
+
+        Args:
+            image (numpy.ndarray): The image or mask that needs to be resized.
+            target_size (tuple): The target size for which the image or mask needs to be resized to.
+            is_mask (bool): Specifies whether the given image is an RGB image or a one-channel mask.
+
+        Returns:
+            numpy.ndarray: The resized image.
+        """
+
         original_aspect = image.shape[1] / image.shape[0]
         target_aspect = target_size[0] / target_size[1]
 
@@ -93,6 +144,18 @@ class OpenEarthMapDataset(Dataset):
         return len(self.filenames)
 
     def __getitem__(self, item):
+        """
+        Loads the next image and mask to be used for training. The image is resized and normalized. The mask is resized.
+
+        Args:
+            item (int): Index of the image and mask to load.
+
+        Returns:
+            tuple: A tuple containing:
+                - image (torch.Tensor): Tensor of image with shape (3, *self.target_size).
+                - mask (torch.Tensor): Tensor of mask with shape self.target_size.
+        """
+
         filename = self.filenames[item]  # for e.g. "aachen_1.tif"
         location_dir = str(re.search(r'^(.*)_(?=\d)', filename).group(1))  # for e.g. "aachen"
 
@@ -113,6 +176,16 @@ class OpenEarthMapDataset(Dataset):
 
 
 def train_loop(dataloader, model, loss_function, optimizer):
+    """
+    The train loop portion of the optimization loop. This function is called at every epoch.
+
+    Args:
+        dataloader: PyTorch Dataloader that loads the train set in batches.
+        model: PyTorch model.
+        loss_function: PyTorch loss function.
+        optimizer: PyTorch optimizer.
+    """
+
     model.train()
     train_loss = 0.0
     miou_metric.reset()
@@ -135,11 +208,24 @@ def train_loop(dataloader, model, loss_function, optimizer):
     train_mean_iou = miou_metric.compute()
     print(f"Training Loss: {avg_train_loss:.4f}, Training Mean IoU: {train_mean_iou:.4f}")
 
+    # Logging optimization history
     train_loss_history.append(avg_train_loss)
     train_miou_history.append(train_mean_iou)
 
 
 def val_loop(dataloader, model, loss_function):
+    """
+    The validation loop portion of the optimization loop. This function is called at every epoch.
+
+    Args:
+        dataloader: PyTorch Dataloader that loads the validation set in batches.
+        model: PyTorch model.
+        loss_function: PyTorch loss function.
+
+    Returns:
+        float: Average validation loss.
+    """
+
     model.eval()
     miou_metric.reset()
     val_loss = 0.0
@@ -159,6 +245,7 @@ def val_loop(dataloader, model, loss_function):
     val_mean_iou = miou_metric.compute()
     print(f"Validation Loss: {avg_val_loss:.4f}, Validation Mean IoU: {val_mean_iou:.4f}\n")
 
+    # Logging optimization history
     val_loss_history.append(avg_val_loss)
     val_miou_history.append(val_mean_iou)
 
@@ -166,6 +253,17 @@ def val_loop(dataloader, model, loss_function):
 
 
 def save_checkpoint(model, optimizer, epoch, path):
+    """
+    Saves a model checkpoint.
+
+    Args:
+        model: PyTorch model.
+        optimizer: PyTorch optimizer.
+        epoch (int): The current epoch number.
+        path (str): Checkpoint save path.
+    """
+
+
     checkpoint = {
         "epoch": epoch,
         "model_state_dict": model.state_dict(),
@@ -205,6 +303,7 @@ for epoch in range(epochs):
     train_loop(train_dataloader, model, loss_function, optimizer)
     avg_val_loss = val_loop(val_dataloader, model, loss_function)
 
+    # Save a model checkpoint every 5 epochs
     if epoch % 5 == 0 and epoch != 0:
         save_checkpoint(model, optimizer, epoch,
                         os.path.join(outputs_save_dir, f"unet_sem_seg_checkpoint_epoch{epoch}.pt"))
