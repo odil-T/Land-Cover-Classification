@@ -9,6 +9,8 @@ import cv2
 import torch.cuda
 import numpy as np
 import datetime
+import torch.nn.functional as F
+import dotenv
 from PIL import Image
 from tqdm import tqdm
 from unet_torch import UNet
@@ -18,6 +20,7 @@ from torchvision.transforms import ToTensor
 from torch.utils.data import Dataset, DataLoader
 
 
+dotenv.load_dotenv()
 device = "cuda" if torch.cuda.is_available() else "cpu"
 current_datetime = datetime.datetime.now().strftime("%Y-%m-%d--%H-%M-%S")
 
@@ -27,12 +30,59 @@ train_txt_file = "train_wo_xBD.txt"
 val_txt_file = "val_wo_xBD.txt"
 outputs_save_dir = f"models/unet_sem_seg_{current_datetime}"
 
-num_classes = 9
-height, width = 1024, 1024
+num_classes = os.getenv("NUM_CLASSES")
+height = os.getenv("TARGET_HEIGHT")
+width = os.getenv("TARGET_WIDTH")
 
 epochs = 50
-batch_size = 4
+batch_size = os.getenv("BATCH_SIZE")
 learning_rate = 1e-3
+
+
+class DiceLoss(nn.Module):
+    """
+    Dice loss for multiclass segmentation.
+    """
+
+    def __init__(self, epsilon=1e-6):
+        super(DiceLoss, self).__init__()
+        self.epsilon = epsilon
+
+    def forward(self, inputs, targets):
+        """
+        Args:
+            inputs (torch.Tensor): Tensor of shape (batch_size, num_classes, height, width).
+            Represents the predicted probabilities or logits.
+            targets (torch.Tensor): Tensor of shape (batch_size, height, width). Represents the ground truth labels.
+            Should contain class indices in the range [0, num_classes - 1].
+
+        Returns:
+            torch.Tensor: Average dice loss.
+        """
+
+        num_classes = inputs.shape[1]
+
+        if inputs.dtype == torch.float32:
+            inputs = torch.softmax(inputs, dim=1)
+
+        targets_one_hot = F.one_hot(targets, num_classes=num_classes)
+        targets_one_hot = targets_one_hot.permute(0, 3, 1, 2).float()  # (batch_size, num_classes, height, width)
+
+        dice_losses = []
+        for c in range(num_classes):
+            input_class = inputs[:, c, :, :]
+            target_class = targets_one_hot[:, c, :, :]
+
+            intersection = torch.sum(input_class * target_class, dim=(1, 2))
+            union = torch.sum(input_class + target_class, dim=(1, 2))
+
+            dice_coeff = (2 * intersection + self.epsilon) / (union + self.epsilon)
+            dice_loss = 1 - dice_coeff
+            dice_losses.append(dice_loss)
+
+        avg_dice_loss = torch.mean(torch.stack(dice_losses))
+
+        return avg_dice_loss
 
 
 class EarlyStopping():
@@ -40,7 +90,7 @@ class EarlyStopping():
     Breaks model optimization loop if no specified amount of improvement is made after a specified number of epochs.
 
     Attributes:
-        patience (int): The number of epochs allowed where improvement is not made.
+        patience (int): The number of epochs allowed where no improvement is made in the validation loss.
         min_delta (float): The minimum decrease in validation loss required after an epoch of training to be considered as an improvement.
         patience_counter (int): The count of epochs where improvement is not made.
         best_val_loss (float): The current lowest validation loss obtained.
@@ -77,7 +127,7 @@ class OpenEarthMapDataset(Dataset):
     Attributes:
         root_data_dir (str): Root directory path of Open Earth Map Dataset from which to load images, masks, and txt files.
         filenames (list): List of file names of images (and masks) that must be used for training. Both images and masks
-        have the same names. THey are stored in different directories.
+        have the same names. They are stored in different directories.
         target_size (tuple): Target size of the image and mask to be resized to for model training.
     """
 
