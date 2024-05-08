@@ -16,7 +16,7 @@ current_datetime = datetime.datetime.now().strftime("%Y-%m-%d--%H-%M-%S")
 model = YOLO("yolov9c.pt")
 
 results = model.train(data="dataset_config.yaml",
-                      epochs=50,
+                      epochs=100,
                       imgsz=height,
                       device=0,
                       patience=10,
