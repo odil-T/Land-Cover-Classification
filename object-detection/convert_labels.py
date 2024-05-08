@@ -1,5 +1,7 @@
 """
-Converts the labels of certain categories from the VALID dataset to YOLO format.
+Converts the labels of certain categories from VALID to YOLO format.
+The labels are saved as txt files in another specified directory.
+The category IDs have been changed from their original IDs to become zero indexed (starts from 0).
 """
 
 import json
@@ -7,8 +9,9 @@ import os
 import re
 
 
-desired_category_names = ["building", "smallvehicle", "largevehicle"]
+desired_category_names = ["smallvehicle", "largevehicle", "building"]
 labels_dir_path = "data/VALID/label/label"
+save_dir_path = "data/VALID/YOLO_format_labels"
 
 
 def convert_xywh_to_yolo(xywh, image_width, image_height):
@@ -48,14 +51,15 @@ for filename in os.listdir(labels_dir_path):
     image_height = label_file_metadata["height"]
 
     # Saving annotations in YOLO format in a new txt file
-    with open(os.path.join("data/VALID/YOLO_format_labels", file_name.replace(".png", ".txt")), "w") as f:
+    with open(os.path.join(save_dir_path, file_name.replace(".png", ".txt")), "w") as f:
         for annotation in label_file_metadata["detection"]:  # each annotation is a dictionary
 
             # Filter annotations of desired categories
             if annotation["category_name"] in desired_category_names:
                 bounding_box = convert_xywh_to_yolo(annotation["hbbox"], image_width, image_height)
+                new_category_id = desired_category_names.index(annotation["category_name"])
 
-                f.write(str(annotation["category_id"]) + " ")
+                f.write(str(new_category_id) + " ")
                 for a in bounding_box[:-1]:
                     f.write(a + " ")
                 f.write(bounding_box[-1] + "\n")

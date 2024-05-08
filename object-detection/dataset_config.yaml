@@ -1,0 +1,9 @@
+path: data
+train: train_yolo/images
+val: val_yolo/images
+test: test_yolo/images
+
+names:
+  0: smallvehicle
+  1: largevehicle
+  2: building
