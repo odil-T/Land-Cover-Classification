@@ -1,5 +1,5 @@
 """
-Trains and saves a U-Net model on OpenEarthMap Dataset.
+Trains and saves a U-Net model on OpenEarthMap Dataset for semantic segmentation.
 """
 
 import os
@@ -83,41 +83,6 @@ class DiceLoss(nn.Module):
         avg_dice_loss = torch.mean(torch.stack(dice_losses))
 
         return avg_dice_loss
-
-
-class EarlyStopping():
-    """
-    Breaks model optimization loop if no specified amount of improvement is made after a specified number of epochs.
-
-    Attributes:
-        patience (int): The number of epochs allowed where no improvement is made in the validation loss.
-        min_delta (float): The minimum decrease in validation loss required after an epoch of training to be considered as an improvement.
-        patience_counter (int): The count of epochs where improvement is not made.
-        best_val_loss (float): The current lowest validation loss obtained.
-        early_stop (bool): Indicates whether the optimization loop should be stopped.
-    """
-
-    def __init__(self, patience=3, min_delta=0.0):
-        """
-        Args:
-              patience (int): The number of epochs allowed where improvement is not made.
-              min_delta (float): The minimum decrease in validation loss required after an epoch of training to be considered as an improvement.
-        """
-
-        self.patience = patience
-        self.min_delta = min_delta
-        self.patience_counter = 0
-        self.best_val_loss = float("inf")
-        self.early_stop = False
-
-    def __call__(self, val_loss):
-        if val_loss < self.best_val_loss - self.min_delta:
-            self.best_val_loss = val_loss
-            self.patience_counter = 0
-        else:
-            self.patience_counter += 1
-            if self.patience_counter >= self.patience:
-                self.early_stop = True
 
 
 class OpenEarthMapDataset(Dataset):
@@ -332,9 +297,8 @@ val_dataloader = DataLoader(val_dataset, batch_size=batch_size, shuffle=True)
 # Model Preparation
 model = UNet(3, num_classes).to(device)
 optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
-loss_function = nn.CrossEntropyLoss()
+loss_function = DiceLoss()
 miou_metric = JaccardIndex(task="multiclass", num_classes=num_classes).to(device)
-early_stopping = EarlyStopping(5, 0.01)
 
 # Logging History
 train_loss_history = []
@@ -344,9 +308,6 @@ val_miou_history = []
 
 # Optimization Loop
 for epoch in range(epochs):
-    if early_stopping.early_stop:
-        print(f"Early stopping at epoch {epoch + 1}")
-        break
 
     print(f"Epoch {epoch + 1}/{epochs}")
 
@@ -358,7 +319,7 @@ for epoch in range(epochs):
         save_checkpoint(model, optimizer, epoch,
                         os.path.join(outputs_save_dir, f"unet_sem_seg_checkpoint_epoch{epoch}.pt"))
 
-    early_stopping(avg_val_loss)
+
 
 history = {
     "train_loss": train_loss_history,
