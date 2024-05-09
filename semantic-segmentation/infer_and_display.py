@@ -23,15 +23,15 @@ dotenv.load_dotenv()
 num_samples = 5
 
 colormap = [
-    (0, 0, 0),        # Black for the first class
-    (255, 0, 0),      # Red
-    (0, 255, 0),      # Green
-    (0, 0, 255),      # Blue
-    (255, 255, 0),    # Yellow
-    (255, 165, 0),    # Orange
-    (128, 0, 128),    # Purple
-    (0, 255, 255),    # Cyan
-    (255, 192, 203)   # Pink
+    (0, 0, 0),        # Black           --- Background
+    (128, 0, 0),      # Maroon          --- Bareland
+    (0, 255, 36),     # Light Green     --- Rangeland
+    (148, 148, 148),  # Grey            --- Developed space
+    (255, 255, 255),  # White           --- Road
+    (34, 97, 38),     # Dark Green      --- Tree
+    (0, 69, 255),     # Blue            --- Water
+    (75, 181, 73),    # Green           --- Agriculture land
+    (222, 31, 7),     # Red             ---	Building
 ]
 num_classes = int(os.getenv("NUM_CLASSES"))
 device = "cuda" if torch.cuda.is_available() else "cpu"
