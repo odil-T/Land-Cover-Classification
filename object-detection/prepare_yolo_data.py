@@ -28,9 +28,9 @@ def find_file_in_directory(root_directory, filename):
     return None
 
 
-file_names = os.listdir("data/VALID/YOLO_format_labels")
+txt_label_file_names = os.listdir("data/VALID/YOLO_format_labels")
 
-y_temp, y_val = train_test_split(file_names, test_size=0.2, shuffle=True, random_state=42)
+y_temp, y_val = train_test_split(txt_label_file_names, test_size=0.2, shuffle=True, random_state=42)
 y_train, y_test = train_test_split(y_temp, test_size=0.125, shuffle=True, random_state=42)
 
 for set_, set_name in zip([y_train, y_val, y_test], ["train", "val", "test"]):
