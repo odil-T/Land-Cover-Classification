@@ -29,6 +29,7 @@ root_data_dir = "data/OpenEarthMap/OpenEarthMap_wo_xBD"
 train_txt_file = "train_wo_xBD.txt"
 val_txt_file = "val_wo_xBD.txt"
 outputs_save_dir = f"models/unet_sem_seg_{current_datetime}"
+os.makedirs(outputs_save_dir)
 
 num_classes = int(os.getenv("NUM_CLASSES"))
 height = int(os.getenv("TARGET_HEIGHT"))
