@@ -12,7 +12,9 @@ import torch.cuda
 import numpy as np
 import datetime
 import dotenv
+import evaluate
 from PIL import Image
+from torch import nn
 from tqdm import tqdm
 from torchmetrics import JaccardIndex
 from torchvision.transforms import ToTensor
@@ -201,7 +203,13 @@ def train_loop(dataloader, model, optimizer):
         optimizer.zero_grad()
 
         train_loss += loss.item()
-        miou_metric.update(logits, batch_y)
+
+        with torch.no_grad():
+            upsampled_logits = nn.functional.interpolate(logits, size=batch_y.shape[-2:], mode="bilinear",
+                                                         align_corners=False)
+            predicted = upsampled_logits.argmax(dim=1)
+
+        miou_metric.update(predicted, batch_y)
 
     avg_train_loss = train_loss / len(dataloader)
     train_mean_iou = miou_metric.compute()
@@ -238,7 +246,13 @@ def val_loop(dataloader, model):
             loss, logits = outputs.loss, outputs.logits
 
             val_loss += loss.item()
-            miou_metric.update(logits, batch_y)
+
+            with torch.no_grad():
+                upsampled_logits = nn.functional.interpolate(logits, size=batch_y.shape[-2:], mode="bilinear",
+                                                             align_corners=False)
+                predicted = upsampled_logits.argmax(dim=1)
+
+            miou_metric.update(predicted, batch_y)
 
     avg_val_loss = val_loss / len(dataloader)
     val_mean_iou = miou_metric.compute()
@@ -278,7 +292,8 @@ train_dataloader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True
 val_dataloader = DataLoader(val_dataset, batch_size=batch_size, shuffle=True)
 
 # Model Preparation
-model = SegformerForSemanticSegmentation.from_pretrained("nvidia/mit-b2").to(device)
+model = SegformerForSemanticSegmentation.from_pretrained("nvidia/mit-b2",
+                                                         num_labels=num_classes).to(device)
 optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
 miou_metric = JaccardIndex(task="multiclass", num_classes=num_classes).to(device)
 
