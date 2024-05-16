@@ -37,7 +37,7 @@ num_classes = int(os.getenv("NUM_CLASSES"))
 height = int(os.getenv("TARGET_HEIGHT"))
 width = int(os.getenv("TARGET_WIDTH"))
 
-epochs = 200
+epochs = 100
 batch_size = int(os.getenv("BATCH_SIZE"))
 learning_rate = 6e-5
 
