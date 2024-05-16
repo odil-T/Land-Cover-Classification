@@ -5,12 +5,12 @@ Trains and saves a U-Net model on OpenEarthMap Dataset for semantic segmentation
 import os
 import pickle
 import re
-import cv2
 import torch.cuda
 import numpy as np
 import datetime
 import torch.nn.functional as F
 import dotenv
+from utils import resize_and_pad
 from PIL import Image
 from tqdm import tqdm
 from unet_torch import UNet
@@ -110,52 +110,6 @@ class OpenEarthMapDataset(Dataset):
             self.filenames = [re.sub(r'\n+$', '', line) for line in f.readlines()]  #  ["aachen_1.tif", "aachen_10.tif", ...]
         self.target_size = target_size
 
-    def resize_and_pad(self, image, target_size, is_mask):
-        """
-        Resizes an image or mask to target size. The image/mask is resized along its longest dimension while maintaining
-        the aspect ratio. If necessary, padding is applied to the regions along the shorter dimension to match the given
-        target size. Black color is used for padding the image. Class ID 0 is used for padding the mask.
-
-        Args:
-            image (numpy.ndarray): The image or mask that needs to be resized.
-            target_size (tuple): The target size for which the image or mask needs to be resized to.
-            is_mask (bool): Specifies whether the given image is an RGB image or a one-channel mask.
-
-        Returns:
-            numpy.ndarray: The resized image.
-        """
-
-        original_aspect = image.shape[1] / image.shape[0]
-        target_aspect = target_size[0] / target_size[1]
-
-        if original_aspect > target_aspect:
-            new_width = target_size[0]
-            new_height = int(new_width / original_aspect)
-        else:
-            new_height = target_size[1]
-            new_width = int(new_height * original_aspect)
-
-        interpolation = cv2.INTER_NEAREST if is_mask else cv2.INTER_LANCZOS4
-        resized_image = cv2.resize(image, (new_width, new_height), interpolation=interpolation)
-
-        pad_top = (target_size[1] - new_height) // 2
-        pad_bottom = target_size[1] - new_height - pad_top
-        pad_left = (target_size[0] - new_width) // 2
-        pad_right = target_size[0] - new_width - pad_left
-
-        padding_value = [0, 0, 0] if not is_mask else 0
-        padded_image = cv2.copyMakeBorder(
-            resized_image,
-            pad_top,
-            pad_bottom,
-            pad_left,
-            pad_right,
-            cv2.BORDER_CONSTANT,
-            value=padding_value,
-        )
-
-        return padded_image
-
     def __len__(self):
         return len(self.filenames)
 
@@ -180,12 +134,12 @@ class OpenEarthMapDataset(Dataset):
 
         image = Image.open(image_path)
         image = np.array(image)
-        image = self.resize_and_pad(image, self.target_size, False)
+        image = resize_and_pad(image, self.target_size, False)
         image = ToTensor()(image)
 
         mask = Image.open(mask_path)
         mask = np.array(mask)
-        mask = self.resize_and_pad(mask, self.target_size, True)
+        mask = resize_and_pad(mask, self.target_size, True)
         mask = torch.from_numpy(mask).type(torch.LongTensor)
 
         return image, mask  # (3, 1024, 1024), (1024, 1024)
