@@ -1,0 +1,7 @@
+path: datasets
+train: train_yolo/images
+val: val_yolo/images
+test:
+
+names:
+  0: building
