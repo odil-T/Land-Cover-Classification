@@ -243,7 +243,7 @@ for epoch in range(epochs):
     print(f"Epoch {epoch + 1}/{epochs}")
 
     train_loop(train_dataloader, model, optimizer)
-    avg_val_loss = val_loop(val_dataloader, model,)
+    avg_val_loss = val_loop(val_dataloader, model)
 
     # Save a model checkpoint every 5 epochs
     if epoch % 5 == 0 and epoch != 0:
