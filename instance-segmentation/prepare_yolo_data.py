@@ -64,11 +64,12 @@ def geojson2yolo(geojson_path, image_path, set_name):
             originX, originY = gdal_image.GetGeoTransform()[0], gdal_image.GetGeoTransform()[3]
 
             for i in range(num_buildings):
-                f.write("0 ")
-
                 points = gj["features"][i]["geometry"]["coordinates"][0]
+
                 if len(points) == 1:
                     points = points[0]
+
+                f.write("0 ")
 
                 for j in range(len(points)):
 
@@ -123,6 +124,10 @@ aoi_root_dir_paths = [
     "datasets/SN2_buildings_train_AOI_5_Khartoum/AOI_5_Khartoum_Train",
 ]
 
+blacklisted_files = [
+    "AOI_2_Vegas_img1"
+]
+
 # Iterating for every AOI.
 for aoi_root_dir_path in aoi_root_dir_paths:
 
@@ -140,8 +145,20 @@ for aoi_root_dir_path in aoi_root_dir_paths:
 
         # Iterating for every .tif image and .geojson file for each set.
         for label_file_name in set_:
+
             geojson_path = f'{aoi_root_dir_path}/geojson/buildings/{label_file_name}'
             image_path = f'{aoi_root_dir_path}/RGB-PanSharpen/{label_file_name.replace("buildings", "RGB-PanSharpen").replace(".geojson", ".tif")}'
+
+            # Exclude processing of blacklisted files
+            should_continue = False
+
+            for bl_file in blacklisted_files:
+                if bl_file in geojson_path:
+                    should_continue = True
+                    break
+
+            if should_continue:
+                continue
 
             # Saving the images and labels in the previously created directories.
             geojson2yolo(geojson_path, image_path, set_name)
