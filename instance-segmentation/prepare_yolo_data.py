@@ -66,9 +66,6 @@ def geojson2yolo(geojson_path, image_path, set_name):
             for i in range(num_buildings):
                 points = gj["features"][i]["geometry"]["coordinates"][0]
 
-                if isinstance(points, float):
-                    return False
-
                 if len(points) == 1:
                     points = points[0]
 
@@ -121,10 +118,10 @@ def tif2png(image_path, set_name):
 
 
 aoi_root_dir_paths = [
-    # "datasets/SN2_buildings_train_AOI_2_Vegas/AOI_2_Vegas_Train",
-    # "datasets/SN2_buildings_train_AOI_3_Paris/AOI_3_Paris_Train",
+    "datasets/SN2_buildings_train_AOI_2_Vegas/AOI_2_Vegas_Train",
+    "datasets/SN2_buildings_train_AOI_3_Paris/AOI_3_Paris_Train",
     "datasets/SN2_buildings_train_AOI_4_Shanghai/AOI_4_Shanghai_Train",
-    # "datasets/SN2_buildings_train_AOI_5_Khartoum/AOI_5_Khartoum_Train",
+    "datasets/SN2_buildings_train_AOI_5_Khartoum/AOI_5_Khartoum_Train",
 ]
 
 blacklisted_files = [
@@ -166,4 +163,3 @@ for aoi_root_dir_path in aoi_root_dir_paths:
             # Saving the images and labels in the previously created directories.
             geojson2yolo(geojson_path, image_path, set_name)
             tif2png(image_path, set_name)
-
