@@ -2,7 +2,7 @@
 Copies and saves the images and labels from VALID to other directories to be used by YOLO.
 The images and labels are split into train, validation, and test sets in 70-20-10 proportions, respectively.
 The images are taken from the original VALID directory.
-The labels are taken from the directory to which the labels were saved in YOLO format by the `convert_labels.py` file.
+The labels are taken from the directory to which the labels were saved in YOLO format by the `prepare_yolo_data.py` file.
 """
 
 import os
