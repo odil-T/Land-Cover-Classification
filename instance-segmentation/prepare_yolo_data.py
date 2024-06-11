@@ -13,8 +13,7 @@ from osgeo import gdal
 from sklearn.model_selection import train_test_split
 
 
-image_height = 650
-image_width = 650
+target_size = 650
 
 
 def create_directory(directory_path):
@@ -79,8 +78,8 @@ def geojson2yolo(geojson_path, image_path, set_name):
                     if isinstance(points[j][1], list):
                         points[j][1] = points[j][1][1]
 
-                    point_x = int(round((points[j][0] - originX) / pixel_width)) / image_width  # normalizing
-                    point_y = int(round((points[j][1] - originY) / pixel_height)) / image_height
+                    point_x = int(round((points[j][0] - originX) / pixel_width)) / target_size  # normalizing
+                    point_y = int(round((points[j][1] - originY) / pixel_height)) / target_size
 
                     f.write(f"{point_x:.3f} {point_y:.3f} ")
 
@@ -128,6 +127,12 @@ blacklisted_files = [
     "AOI_2_Vegas_img1"
 ]
 
+# Creating directories to save the reformatted images and labels to be used later for training the YOLO model.
+for set_name in ["train", "val"]:
+    create_directory(f"datasets/{set_name}_yolo")
+    create_directory(f"datasets/{set_name}_yolo/images")
+    create_directory(f"datasets/{set_name}_yolo/labels")
+
 # Iterating for every AOI.
 for aoi_root_dir_path in aoi_root_dir_paths:
 
@@ -137,11 +142,6 @@ for aoi_root_dir_path in aoi_root_dir_paths:
 
     # Iterating for both train and validation sets.
     for set_, set_name in zip([y_train, y_val], ["train", "val"]):
-
-        # Creating directories to save the reformatted images and labels to be used later for training the YOLO model.
-        create_directory(f"datasets/{set_name}_yolo")
-        create_directory(f"datasets/{set_name}_yolo/images")
-        create_directory(f"datasets/{set_name}_yolo/labels")
 
         # Iterating for every .tif image and .geojson file for each set.
         for label_file_name in set_:

@@ -64,7 +64,8 @@ def display_results(n, model):
                 # Converting to polygon format that OpenCV can understand
                 polygon = []
                 for i in range(0, len(yolo_polygon), 2):
-                    polygon.append([int(yolo_polygon[i] * image_width), int(yolo_polygon[i + 1] * image_height)])
+                    polygon.append([int(yolo_polygon[i] * original_image.shape[1]),
+                                    int(yolo_polygon[i + 1] * original_image.shape[0])])
                 polygon = np.array(polygon)
 
                 cv2.fillPoly(ground_truth_image, [polygon], 255)
