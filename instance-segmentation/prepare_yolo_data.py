@@ -160,8 +160,6 @@ for aoi_root_dir_path in aoi_root_dir_paths:
             if should_continue:
                 continue
 
-            print(f"Now Processing: {image_path}")
-
             # Saving the images and labels in the previously created directories.
             geojson2yolo(geojson_path, image_path, set_name)
             tif2png(image_path, set_name)
