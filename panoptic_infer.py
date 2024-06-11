@@ -1,11 +1,21 @@
 """
-Perform panoptic segmentation on a satellite image by merging inferred semantic and instance masks.
+Performs panoptic segmentation on a satellite image by merging inferred semantic and instance masks.
+Semantic segmentation is performed by a pretrained SegFormer model on the following classes:
+- Bareland
+- Rangeland
+- Developed space
+- Road
+- Tree
+- Water
+- Agriculture land
+- Building
+
+The `Building` class semantic mask is overlaid with the instance masks from the pretrained YOLO instance model.
+
 You may specify the image to infer, the SegFormer semantic model, and the YOLO instance model.
 """
 
-import os
 import torch
-from dotenv import load_dotenv
 from utils import *
 from PIL import Image
 from matplotlib import pyplot as plt
@@ -15,9 +25,7 @@ from transformers import SegformerForSemanticSegmentation
 from ultralytics import YOLO
 
 
-load_dotenv()
-
-num_classes = int(os.getenv("NUM_CLASSES"))
+num_classes = 9
 device = "cuda" if torch.cuda.is_available() else "cpu"
 
 # Specify path of image to infer
@@ -50,40 +58,40 @@ colormap = [
 
 def preprocess_image(image_path, target_size):
     """
-    Crops the image center.
+    Resizes the image to the specified target size.
 
     Args:
-        image_path:
-        target_size:
+        image_path (str): The path of the image to load.
+        target_size (int): The height and width of the image to resize to. Since both dimensions are the same, this results
+        in a square image.
 
     Returns:
-        numpy.ndarray:
+        numpy.ndarray: The resized image.
     """
 
     image = Image.open(image_path)
     image_width, image_height = image.size
 
     if image_width >= target_size and image_height >= target_size:
-        image_original = crop_center(image, target_size)
-        image_original = np.array(image_original)
+        image = np.array(crop_center(image, target_size))
     else:
-        image = np.array(image)
-        image_original = resize_and_pad(image, (target_size, target_size), False)
+        image = resize_and_pad(np.array(image), (target_size, target_size), False)
 
-    return image_original
+    return image
 
 
 def infer_segformer(image_path, model, target_size, colormap):
     """
+    Performs semantic segmentation on an image.
 
     Args:
-        image (numpy.ndarray):
-        model:
-        target_size:
-        colormap:
+        image_path (str): The path of the image to infer.
+        model: PyTorch SegFormer model to use for inference.
+        target_size (int): The height and width of the output mask.
+        colormap (list): The colormap to indicate the colors of different classes.
 
     Returns:
-
+        numpy.ndarray: The inferred semantic mask.
     """
 
     colormap = colormap[:num_classes]
@@ -93,10 +101,10 @@ def infer_segformer(image_path, model, target_size, colormap):
     image = image.unsqueeze(0)
 
     with torch.no_grad():
-        pred_logits = model(image).logits  # output: torch.Tensor (1, 9, 250, 250)
+        pred_logits = model(image).logits  # output: torch.Tensor (1, 9, height/4, width/4)
         upsampled_logits = nn.functional.interpolate(pred_logits,
                                                      size=(target_size, target_size), mode="bilinear",
-                                                     align_corners=False)  # output: torch.Tensor (1, 9, 1000, 1000)
+                                                     align_corners=False)  # output: torch.Tensor (1, 9, height, width)
         pred = upsampled_logits.argmax(dim=1)
         pred = pred.squeeze(0)
         pred = pred.cpu()
@@ -111,14 +119,16 @@ def infer_segformer(image_path, model, target_size, colormap):
 
 def infer_yolo(image_path, model, target_size, blacklisted_colors):
     """
+    Performs instance segmentation on an image.
 
     Args:
-        image (numpy.ndarray): An RGB image.
-        model:
-        blacklisted_colors:
+        image_path (str): The path of the image to infer.
+        model: YOLO model to use for inference.
+        target_size (int): The height and width of the output mask.
+        blacklisted_colors (list): The list of colors which the instance masks cannot use.
 
     Returns:
-        numpy.ndarray:
+        numpy.ndarray: The inferred instance mask.
     """
 
     image = preprocess_image(image_path, target_size)
@@ -144,15 +154,17 @@ def infer_yolo(image_path, model, target_size, blacklisted_colors):
 
 
 def display(image_path):
+    """
+    Displays the original image and the panoptic mask by overlaying the instance masks on top of the semantic mask.
+
+    Args:
+        image_path (str): The path of the image to infer.
+    """
 
     original_image = np.array(Image.open(image_path))
 
     semantic_mask = infer_segformer(image_path, segformer, target_size, colormap)
     instance_mask = infer_yolo(image_path, yolo, target_size, colormap)
-
-    print('SEMANTIC', semantic_mask, semantic_mask.shape)
-
-    print('INSTANCE', instance_mask, instance_mask.shape)
 
     # Merging the masks
     black_mask = np.all(instance_mask == [0, 0, 0], axis=-1)
