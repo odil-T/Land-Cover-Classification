@@ -146,7 +146,7 @@ def train_loop(dataloader, model, optimizer):
         miou_metric.update(predicted, batch_y)
 
     avg_train_loss = train_loss / len(dataloader)
-    train_mean_iou = miou_metric.compute().item()
+    train_mean_iou = miou_metric.compute()
     print(f"Training Loss: {avg_train_loss:.4f}, Training Mean IoU: {train_mean_iou:.4f}")
 
     # Logging optimization history
@@ -189,7 +189,7 @@ def val_loop(dataloader, model):
             miou_metric.update(predicted, batch_y)
 
     avg_val_loss = val_loss / len(dataloader)
-    val_mean_iou = miou_metric.compute().item()
+    val_mean_iou = miou_metric.compute()
     print(f"Validation Loss: {avg_val_loss:.4f}, Validation Mean IoU: {val_mean_iou:.4f}\n")
 
     # Logging optimization history
@@ -243,7 +243,7 @@ for epoch in range(epochs):
     print(f"Epoch {epoch + 1}/{epochs}")
 
     train_loop(train_dataloader, model, optimizer)
-    avg_val_loss = val_loop(val_dataloader, model)
+    avg_val_loss = val_loop(val_dataloader, model,)
 
     # Save a model checkpoint every 5 epochs
     if epoch % 5 == 0 and epoch != 0:

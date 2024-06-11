@@ -129,5 +129,4 @@ model = SegformerForSemanticSegmentation.from_pretrained("nvidia/mit-b2",
                                                          num_labels=num_classes).to(device)
 checkpoint = torch.load("models/segformer_sem_seg_2024-05-16--14-40-45/segformer_sem_seg_checkpoint_epoch35.pt")
 model.load_state_dict(checkpoint["model_state_dict"])
-
 display_results(num_samples, model)
