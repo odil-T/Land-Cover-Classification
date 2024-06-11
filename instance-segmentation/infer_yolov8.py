@@ -17,7 +17,7 @@ from ultralytics import YOLO
 # Specify number of samples to display from the validation set
 num_samples = 5
 
-model = YOLO("yolov8n-seg")
+model = YOLO("")
 
 blacklisted_colors = [
     [0, 0, 0],        # Black           --- Background
