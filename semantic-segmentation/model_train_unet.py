@@ -9,7 +9,6 @@ import torch.cuda
 import numpy as np
 import datetime
 import torch.nn.functional as F
-import dotenv
 from utils import resize_and_pad
 from PIL import Image
 from tqdm import tqdm
@@ -20,7 +19,6 @@ from torchvision.transforms import ToTensor
 from torch.utils.data import Dataset, DataLoader
 
 
-dotenv.load_dotenv()
 device = "cuda" if torch.cuda.is_available() else "cpu"
 current_datetime = datetime.datetime.now().strftime("%Y-%m-%d--%H-%M-%S")
 
@@ -31,12 +29,11 @@ val_txt_file = "val_wo_xBD.txt"
 outputs_save_dir = f"models/unet_sem_seg_{current_datetime}"
 os.makedirs(outputs_save_dir)
 
-num_classes = int(os.getenv("NUM_CLASSES"))
-height = int(os.getenv("TARGET_HEIGHT"))
-width = int(os.getenv("TARGET_WIDTH"))
+num_classes = 9
+target_size = 1024
 
 epochs = 50
-batch_size = int(os.getenv("BATCH_SIZE"))
+batch_size = 2
 learning_rate = 1e-3
 
 
@@ -243,8 +240,8 @@ def save_checkpoint(model, optimizer, epoch, path):
 
 
 # Data Preparation
-train_dataset = OpenEarthMapDataset(root_data_dir, train_txt_file, (height, width))
-val_dataset = OpenEarthMapDataset(root_data_dir, val_txt_file, (height, width))
+train_dataset = OpenEarthMapDataset(root_data_dir, train_txt_file, (target_size, target_size))
+val_dataset = OpenEarthMapDataset(root_data_dir, val_txt_file, (target_size, target_size))
 
 train_dataloader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
 val_dataloader = DataLoader(val_dataset, batch_size=batch_size, shuffle=True)

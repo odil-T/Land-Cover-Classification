@@ -1,28 +1,18 @@
-from sklearn.metrics import confusion_matrix
 import os
-import pickle
-import re
-import cv2
 import torch.cuda
 import numpy as np
-import datetime
-import dotenv
 from PIL import Image
 from torch import nn
-from tqdm import tqdm
-from torchmetrics import JaccardIndex
 from torchvision.transforms import ToTensor
 from torch.utils.data import Dataset, DataLoader
 from transformers import SegformerForSemanticSegmentation
 
 
-dotenv.load_dotenv()
 device = "cuda" if torch.cuda.is_available() else "cpu"
 
-num_classes = int(os.getenv("NUM_CLASSES"))
-height = int(os.getenv("TARGET_HEIGHT"))
-width = int(os.getenv("TARGET_WIDTH"))
-batch_size = int(os.getenv("BATCH_SIZE"))
+num_classes = 9
+target_size = 650
+batch_size = 2
 
 
 def calculate_metrics(preds, labels, num_classes, ignore_index=None):
@@ -135,11 +125,8 @@ class OpenEarthMapDataset(Dataset):
 
 
 # Data Preparation
-val_dataset = OpenEarthMapDataset("data/LoveDA/Val/Rural", (height, width))
+val_dataset = OpenEarthMapDataset("data/LoveDA/Val/Rural", (target_size, target_size))
 val_dataloader = DataLoader(val_dataset, batch_size=batch_size, shuffle=True)
-
-
-
 
 model = SegformerForSemanticSegmentation.from_pretrained("nvidia/mit-b2",
                                                          num_labels=num_classes).to(device)
@@ -162,7 +149,7 @@ with torch.no_grad():
 
         pred_logits = model(images).logits  # output: torch.Tensor (1, 9, 250, 250)
         upsampled_logits = nn.functional.interpolate(pred_logits,
-                                                     size=(height, width), mode="bilinear",
+                                                     size=(target_size, target_size), mode="bilinear",
                                                      align_corners=False)  # output: torch.Tensor (1, 9, 1000, 1000)
         pred = upsampled_logits.argmax(dim=1)
         pred = pred.cpu()

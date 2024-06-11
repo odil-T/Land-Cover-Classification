@@ -10,7 +10,6 @@ import re
 import torch.cuda
 import numpy as np
 import datetime
-import dotenv
 from utils import resize_and_pad, crop_center
 from PIL import Image
 from torch import nn
@@ -21,7 +20,6 @@ from torch.utils.data import Dataset, DataLoader
 from transformers import SegformerForSemanticSegmentation
 
 
-dotenv.load_dotenv()
 device = "cuda" if torch.cuda.is_available() else "cpu"
 current_datetime = datetime.datetime.now().strftime("%Y-%m-%d--%H-%M-%S")
 
@@ -32,12 +30,11 @@ val_txt_file = "val.txt"
 outputs_save_dir = f"models/segformer_sem_seg_{current_datetime}"
 os.makedirs(outputs_save_dir)
 
-num_classes = int(os.getenv("NUM_CLASSES"))
-height = int(os.getenv("TARGET_HEIGHT"))
-width = int(os.getenv("TARGET_WIDTH"))
+num_classes = 9
+target_size = 650
 
-epochs = 100
-batch_size = int(os.getenv("BATCH_SIZE"))
+epochs = 50
+batch_size = 2
 learning_rate = 6e-5
 
 
@@ -219,8 +216,8 @@ def save_checkpoint(model, optimizer, epoch, path):
 
 
 # Data Preparation
-train_dataset = OpenEarthMapDataset(root_data_dir, train_txt_file, (height, width))
-val_dataset = OpenEarthMapDataset(root_data_dir, val_txt_file, (height, width))
+train_dataset = OpenEarthMapDataset(root_data_dir, train_txt_file, (target_size, target_size))
+val_dataset = OpenEarthMapDataset(root_data_dir, val_txt_file, (target_size, target_size))
 
 train_dataloader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
 val_dataloader = DataLoader(val_dataset, batch_size=batch_size, shuffle=True)
