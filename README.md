@@ -18,7 +18,7 @@ The semantic model can detect the following classes from the image:
 
 The instance model only detects instances of the `Building` class.
 
-### How to use the pretrained model
+### How to use the pretrained model [INCOMPLETE]
 
 The easiest way to use the final model is to use the following Streamlit app: 
 
@@ -34,7 +34,7 @@ Alternatively, you may use the final model locally by following the steps below:
 
 
 
-### How to train new models
+### How to train new models [INCOMPLETE]
 
 
 
