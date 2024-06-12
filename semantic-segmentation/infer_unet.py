@@ -7,7 +7,6 @@ You may specify the number of samples to display.
 
 import os
 import re
-import dotenv
 import random
 import numpy as np
 from utils import resize_and_pad
@@ -17,10 +16,10 @@ from matplotlib import pyplot as plt
 from torchvision.transforms import ToTensor
 
 
-dotenv.load_dotenv()
-
 # Specify number of samples to display from the validation set
 num_samples = 5
+
+target_size = 1024
 
 colormap = [
     (0, 0, 0),        # Black           --- Background
@@ -33,11 +32,12 @@ colormap = [
     (75, 181, 73),    # Green           --- Agriculture land
     (222, 31, 7),     # Red             ---	Building
 ]
-num_classes = int(os.getenv("NUM_CLASSES"))
+
+num_classes = 9
 device = "cuda" if torch.cuda.is_available() else "cpu"
 
 
-def display_results(n, model):
+def display_results(n, model, target_size):
     """
     Displays random N number of images, ground truth masks, and predicted masks from the validation set of the
     OpenEarthMap dataset.
@@ -45,10 +45,8 @@ def display_results(n, model):
     Args:
         n (int): The number of random samples from the validation set to display.
         model: PyTorch model to use for semantic segmentation.
+        target_size (int): The height and width of the output mask.
     """
-
-    height = 1024
-    width = 1024
 
     root_data_dir = "data/OpenEarthMap/OpenEarthMap_wo_xBD"
     filenames_file = "val_wo_xBD.txt"
@@ -66,7 +64,7 @@ def display_results(n, model):
 
         image = Image.open(image_path)
         image = np.array(image)
-        image_original = resize_and_pad(image, (height, width), False)
+        image_original = resize_and_pad(image, target_size, False)
         image = ToTensor()(image_original).to(device)
         image = image.unsqueeze(0)
 
@@ -115,4 +113,4 @@ model = UNet(3, num_classes).to(device)
 checkpoint = torch.load("models/unet_sem_seg_2024-05-07--05-45-34/unet_sem_seg_checkpoint_epoch40.pt")
 model.load_state_dict(checkpoint["model_state_dict"])
 
-display_results(num_samples, model)
+display_results(num_samples, model, target_size)

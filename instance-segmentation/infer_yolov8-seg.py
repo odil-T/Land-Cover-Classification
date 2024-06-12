@@ -9,6 +9,7 @@ import os
 import cv2
 import random
 import numpy as np
+from utils import random_color
 from matplotlib import pyplot as plt
 from ultralytics import YOLO
 
@@ -16,7 +17,7 @@ from ultralytics import YOLO
 # Specify number of samples to display from the validation set
 num_samples = 5
 
-model = YOLO("yolov8n-seg")
+model = YOLO("")
 
 blacklisted_colors = [
     [0, 0, 0],        # Black           --- Background
@@ -29,22 +30,6 @@ blacklisted_colors = [
     [75, 181, 73],    # Green           --- Agriculture land
     [222, 31, 7],     # Red             ---	Building
 ]
-
-
-def random_color(blacklisted_colors):
-    """
-    Generates a random color different from the blacklisted colors.
-
-    Args:
-        blacklisted_colors (list): A list of colors that should not be generated.
-
-    Returns:
-        list: The randomly generated color.
-    """
-    color = None
-    while color is None or color in blacklisted_colors:
-        color = np.random.randint(0, 255, size=3).tolist()
-    return color
 
 
 def display_results(n, model):
@@ -67,9 +52,7 @@ def display_results(n, model):
 
     for i, result in enumerate(results):
         original_image = cv2.imread(random_n_image_paths[i])
-        image_height, image_width = original_image.shape[:2]
-
-        ground_truth_image = np.zeros((image_height, image_width), dtype=int)
+        ground_truth_image = np.zeros(original_image.shape, dtype=int)
         predicted_image = ground_truth_image.copy()
 
 
@@ -81,7 +64,8 @@ def display_results(n, model):
                 # Converting to polygon format that OpenCV can understand
                 polygon = []
                 for i in range(0, len(yolo_polygon), 2):
-                    polygon.append([int(yolo_polygon[i] * image_width), int(yolo_polygon[i + 1] * image_height)])
+                    polygon.append([int(yolo_polygon[i] * original_image.shape[1]),
+                                    int(yolo_polygon[i + 1] * original_image.shape[0])])
                 polygon = np.array(polygon)
 
                 cv2.fillPoly(ground_truth_image, [polygon], 255)

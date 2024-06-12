@@ -10,7 +10,6 @@ import re
 import torch.cuda
 import numpy as np
 import datetime
-import dotenv
 from utils import resize_and_pad, crop_center
 from PIL import Image
 from torch import nn
@@ -21,7 +20,6 @@ from torch.utils.data import Dataset, DataLoader
 from transformers import SegformerForSemanticSegmentation
 
 
-dotenv.load_dotenv()
 device = "cuda" if torch.cuda.is_available() else "cpu"
 current_datetime = datetime.datetime.now().strftime("%Y-%m-%d--%H-%M-%S")
 
@@ -32,12 +30,11 @@ val_txt_file = "val.txt"
 outputs_save_dir = f"models/segformer_sem_seg_{current_datetime}"
 os.makedirs(outputs_save_dir)
 
-num_classes = int(os.getenv("NUM_CLASSES"))
-height = int(os.getenv("TARGET_HEIGHT"))
-width = int(os.getenv("TARGET_WIDTH"))
+num_classes = 9
+target_size = 650
 
-epochs = 100
-batch_size = int(os.getenv("BATCH_SIZE"))
+epochs = 50
+batch_size = 2
 learning_rate = 6e-5
 
 
@@ -49,7 +46,7 @@ class OpenEarthMapDataset(Dataset):
         root_data_dir (str): Root directory path of Open Earth Map Dataset from which to load images, masks, and txt files.
         filenames (list): List of file names of images (and masks) that must be used for training. Both images and masks
         have the same names. They are stored in different directories.
-        target_size (tuple): Target size of the image and mask to be resized to for model training.
+        target_size (int): Height and width of the image and mask to be resized to for model training.
     """
 
     def __init__(self, root_data_dir, filenames_file, target_size):
@@ -57,7 +54,7 @@ class OpenEarthMapDataset(Dataset):
         Args:
             root_data_dir (str): Root directory path of Open Earth Map Dataset.
             filenames_file (str): Name of txt file that stores the file names of images and masks to be used for training.
-            target_size (tuple): Target size of the image and mask to be resized to for model training.
+            target_size (int): Height and width of the image and mask to be resized to for model training.
         """
 
         self.root_data_dir = root_data_dir
@@ -77,8 +74,8 @@ class OpenEarthMapDataset(Dataset):
 
         Returns:
             tuple: A tuple containing:
-                - image (torch.Tensor): Tensor of image with shape (3, *self.target_size).
-                - mask (torch.Tensor): Tensor of mask with shape self.target_size.
+                - image (torch.Tensor): Tensor of image with shape (3, self.target_size, self.target_size).
+                - mask (torch.Tensor): Tensor of mask with shape (self.target_size, self.target_size).
         """
 
         filename = self.filenames[item]  # for e.g. "aachen_1.tif"
@@ -92,9 +89,9 @@ class OpenEarthMapDataset(Dataset):
 
         image_width, image_height = image.size
 
-        if image_width >= self.target_size[1] and image_height >= self.target_size[0]:
-            image = crop_center(image, self.target_size[0])
-            mask = crop_center(mask, self.target_size[0])
+        if image_width >= self.target_size and image_height >= self.target_size:
+            image = crop_center(image, self.target_size)
+            mask = crop_center(mask, self.target_size)
             mask = np.array(mask)
 
         else:
@@ -146,7 +143,7 @@ def train_loop(dataloader, model, optimizer):
         miou_metric.update(predicted, batch_y)
 
     avg_train_loss = train_loss / len(dataloader)
-    train_mean_iou = miou_metric.compute().item()
+    train_mean_iou = miou_metric.compute()
     print(f"Training Loss: {avg_train_loss:.4f}, Training Mean IoU: {train_mean_iou:.4f}")
 
     # Logging optimization history
@@ -189,7 +186,7 @@ def val_loop(dataloader, model):
             miou_metric.update(predicted, batch_y)
 
     avg_val_loss = val_loss / len(dataloader)
-    val_mean_iou = miou_metric.compute().item()
+    val_mean_iou = miou_metric.compute()
     print(f"Validation Loss: {avg_val_loss:.4f}, Validation Mean IoU: {val_mean_iou:.4f}\n")
 
     # Logging optimization history
@@ -219,8 +216,8 @@ def save_checkpoint(model, optimizer, epoch, path):
 
 
 # Data Preparation
-train_dataset = OpenEarthMapDataset(root_data_dir, train_txt_file, (height, width))
-val_dataset = OpenEarthMapDataset(root_data_dir, val_txt_file, (height, width))
+train_dataset = OpenEarthMapDataset(root_data_dir, train_txt_file, target_size)
+val_dataset = OpenEarthMapDataset(root_data_dir, val_txt_file, target_size)
 
 train_dataloader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
 val_dataloader = DataLoader(val_dataset, batch_size=batch_size, shuffle=True)
@@ -243,7 +240,7 @@ for epoch in range(epochs):
     print(f"Epoch {epoch + 1}/{epochs}")
 
     train_loop(train_dataloader, model, optimizer)
-    avg_val_loss = val_loop(val_dataloader, model)
+    avg_val_loss = val_loop(val_dataloader, model,)
 
     # Save a model checkpoint every 5 epochs
     if epoch % 5 == 0 and epoch != 0:

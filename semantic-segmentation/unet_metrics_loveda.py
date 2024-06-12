@@ -1,32 +1,19 @@
-from sklearn.metrics import confusion_matrix
 import os
-import pickle
-import re
-import cv2
 import torch.cuda
 import numpy as np
 import datetime
-import dotenv
 from PIL import Image
-from torch import nn
-from tqdm import tqdm
-from torchmetrics import JaccardIndex
 from torchvision.transforms import ToTensor
 from torch.utils.data import Dataset, DataLoader
-from transformers import SegformerForSemanticSegmentation
 from unet_torch import *
 
 
-dotenv.load_dotenv()
 device = "cuda" if torch.cuda.is_available() else "cpu"
 current_datetime = datetime.datetime.now().strftime("%Y-%m-%d--%H-%M-%S")
 
-
-num_classes = int(os.getenv("NUM_CLASSES"))
-height = 1024
-width = 1024
-
-batch_size = int(os.getenv("BATCH_SIZE"))
+num_classes = 9
+target_size = 1024
+batch_size = 2
 
 
 def calculate_metrics(preds, labels, num_classes, ignore_index=None):
@@ -139,7 +126,7 @@ class OpenEarthMapDataset(Dataset):
 
 
 # Data Preparation
-val_dataset = OpenEarthMapDataset("data/LoveDA/Val/Rural", (height, width))
+val_dataset = OpenEarthMapDataset("data/LoveDA/Val/Rural", (target_size, target_size))
 val_dataloader = DataLoader(val_dataset, batch_size=batch_size, shuffle=True)
 
 
