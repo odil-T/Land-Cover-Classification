@@ -46,7 +46,7 @@ class OpenEarthMapDataset(Dataset):
         root_data_dir (str): Root directory path of Open Earth Map Dataset from which to load images, masks, and txt files.
         filenames (list): List of file names of images (and masks) that must be used for training. Both images and masks
         have the same names. They are stored in different directories.
-        target_size (tuple): Target size of the image and mask to be resized to for model training.
+        target_size (int): Height and width of the image and mask to be resized to for model training.
     """
 
     def __init__(self, root_data_dir, filenames_file, target_size):
@@ -54,7 +54,7 @@ class OpenEarthMapDataset(Dataset):
         Args:
             root_data_dir (str): Root directory path of Open Earth Map Dataset.
             filenames_file (str): Name of txt file that stores the file names of images and masks to be used for training.
-            target_size (tuple): Target size of the image and mask to be resized to for model training.
+            target_size (int): Height and width of the image and mask to be resized to for model training.
         """
 
         self.root_data_dir = root_data_dir
@@ -74,8 +74,8 @@ class OpenEarthMapDataset(Dataset):
 
         Returns:
             tuple: A tuple containing:
-                - image (torch.Tensor): Tensor of image with shape (3, *self.target_size).
-                - mask (torch.Tensor): Tensor of mask with shape self.target_size.
+                - image (torch.Tensor): Tensor of image with shape (3, self.target_size, self.target_size).
+                - mask (torch.Tensor): Tensor of mask with shape (self.target_size, self.target_size).
         """
 
         filename = self.filenames[item]  # for e.g. "aachen_1.tif"
@@ -89,9 +89,9 @@ class OpenEarthMapDataset(Dataset):
 
         image_width, image_height = image.size
 
-        if image_width >= self.target_size[1] and image_height >= self.target_size[0]:
-            image = crop_center(image, self.target_size[0])
-            mask = crop_center(mask, self.target_size[0])
+        if image_width >= self.target_size and image_height >= self.target_size:
+            image = crop_center(image, self.target_size)
+            mask = crop_center(mask, self.target_size)
             mask = np.array(mask)
 
         else:
@@ -216,8 +216,8 @@ def save_checkpoint(model, optimizer, epoch, path):
 
 
 # Data Preparation
-train_dataset = OpenEarthMapDataset(root_data_dir, train_txt_file, (target_size, target_size))
-val_dataset = OpenEarthMapDataset(root_data_dir, val_txt_file, (target_size, target_size))
+train_dataset = OpenEarthMapDataset(root_data_dir, train_txt_file, target_size)
+val_dataset = OpenEarthMapDataset(root_data_dir, val_txt_file, target_size)
 
 train_dataloader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
 val_dataloader = DataLoader(val_dataset, batch_size=batch_size, shuffle=True)

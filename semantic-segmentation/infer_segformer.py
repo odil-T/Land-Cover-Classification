@@ -75,10 +75,10 @@ def display_results(n, model, target_size):
 
         else:
             image = np.array(image)
-            image_original = resize_and_pad(image, (target_size, target_size), False)
+            image_original = resize_and_pad(image, target_size, False)
 
             true_mask = np.array(true_mask)
-            true_mask = resize_and_pad(true_mask, (target_size, target_size), True)
+            true_mask = resize_and_pad(true_mask, target_size, True)
 
 
         image = ToTensor()(image_original).to(device)

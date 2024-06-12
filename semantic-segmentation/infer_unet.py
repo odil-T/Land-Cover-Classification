@@ -64,7 +64,7 @@ def display_results(n, model, target_size):
 
         image = Image.open(image_path)
         image = np.array(image)
-        image_original = resize_and_pad(image, (target_size, target_size), False)
+        image_original = resize_and_pad(image, target_size, False)
         image = ToTensor()(image_original).to(device)
         image = image.unsqueeze(0)
 
