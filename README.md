@@ -1,8 +1,17 @@
 # Land-Cover-Classification
 
-This project is currenty in progress.
+This repository contains the files necessary to run inference and training of models to perform panoptic segmentation of satellite images for land cover classification.
 
-The idea of the project is to perform panoptic segmentation on satellite images to perform land cover classification. The land cover can be classified with a semantic segmentation model. The instance segmentation of trees and buildings can be performed by a separate model. The resulting outputs can be overlayed for the final output.
+The panoptic segmentation is performed by using semantic and instance segmentation models. The semantic segmentation model first performs segmentation on the image to predict the masks of different classes on the image. Thereafter, the instance segmentation model predicts instance masks of the `building` class and overlays them on the semantic mask.
+
+
+
+
+
+
+
+
+
 
 The `semantic-segmentation` directory contains the files to train and infer the semantic segmentation model.
 
