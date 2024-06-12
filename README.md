@@ -7,14 +7,14 @@ The panoptic segmentation is performed by using semantic and instance segmentati
 The semantic model was trained on the [OpenEarthMap dataset](https://open-earth-map.org/). The instance model was trained on the [SpaceNet-v2 dataset](https://spacenet.ai/spacenet-buildings-dataset-v2/).
 
 The semantic model can detect the following classes from the image:
-- Bareland
-- Rangeland
-- Developed space
-- Road
-- Tree
-- Water
-- Agriculture land
-- Building
+- `Bareland`
+- `Rangeland`
+- `Developed space`
+- `Road`
+- `Tree`
+- `Water`
+- `Agriculture land`
+- `Building`
 
 The instance model only detects instances of the `Building` class.
 
