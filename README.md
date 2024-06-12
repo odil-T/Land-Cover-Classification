@@ -4,6 +4,8 @@ This repository contains the files necessary to run inference and training of mo
 
 The panoptic segmentation is performed by using semantic and instance segmentation models. The semantic segmentation model first performs segmentation on the image to predict the masks of different classes on the image. Thereafter, the instance segmentation model predicts instance masks of the `Building` class and overlays them on the semantic mask.
 
+The semantic model was trained on the [https://open-earth-map.org/](OpenEarthMap dataset). The instance model was trained on the [https://spacenet.ai/spacenet-buildings-dataset-v2/](SpaceNet-v2 dataset).
+
 The semantic model can detect the following classes from the image:
 - Bareland
 - Rangeland
