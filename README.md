@@ -31,7 +31,7 @@ Alternatively, you may use the final model locally by following the steps below:
 5. Activate the conda environment using `conda activate lulc`.
 6. 
 
-
+Please provide 650 x 650 images with 0.3m GSD resolution.
 
 
 ### How to train new models [INCOMPLETE]
