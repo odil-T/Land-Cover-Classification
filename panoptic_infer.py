@@ -29,7 +29,7 @@ num_classes = 9
 device = "cuda" if torch.cuda.is_available() else "cpu"
 
 # Specify path of image to infer
-image_path = "instance-segmentation/img2.jpg"
+image_path = r"img2.jpg"
 
 # Load SegFormer model
 segformer = SegformerForSemanticSegmentation.from_pretrained("nvidia/mit-b2",
@@ -38,7 +38,7 @@ checkpoint = torch.load("best_models/segformer_sem_seg_checkpoint_epoch35.pt")
 segformer.load_state_dict(checkpoint["model_state_dict"])
 
 # Load YOLO model
-yolo = YOLO("best_models/yolov8n-seg.pt")
+yolo = YOLO("best_models/best.pt")
 
 
 target_size = 650
@@ -75,9 +75,9 @@ def preprocess_image(image_path, target_size):
     if image_width >= target_size and image_height >= target_size:
         image = np.array(crop_center(image, target_size))
     else:
-        image = resize_and_pad(np.array(image), (target_size, target_size), False)
+        image = resize_and_pad(np.array(image), target_size, False)
 
-    return image
+    return image[:, :, :3]
 
 
 def infer_segformer(image_path, model, target_size, colormap):
@@ -161,7 +161,7 @@ def display(image_path):
         image_path (str): The path of the image to infer.
     """
 
-    original_image = np.array(Image.open(image_path))
+    original_image = preprocess_image(image_path, target_size)
 
     semantic_mask = infer_segformer(image_path, segformer, target_size, colormap)
     instance_mask = infer_yolo(image_path, yolo, target_size, colormap)
