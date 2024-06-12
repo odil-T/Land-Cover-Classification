@@ -1,0 +1,20 @@
+name: lulc
+channels:
+  - defaults
+  - conda-forge
+dependencies:
+  - python=3.11
+  - numpy=1.26.4
+  - pandas=2.2.1
+  - matplotlib=3.8.4
+  - pillow=10.3.0
+  - scikit-learn=1.4.2
+  - geojson=3.1.0
+  - tqdm=4.66.4
+  - torchmetrics=1.1.2
+  - transformers=4.37.2
+  - gdal=3.6.2
+  - pip
+  - pip:
+    - opencv-python==4.9.0.80
+    - ultralytics==8.2.28
