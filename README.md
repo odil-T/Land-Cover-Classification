@@ -4,7 +4,7 @@ This repository contains the files necessary to run inference and training of mo
 
 The panoptic segmentation is performed by using semantic and instance segmentation models. The semantic segmentation model first performs segmentation on the image to predict the masks of different classes on the image. Thereafter, the instance segmentation model predicts instance masks of the `Building` class and overlays them on the semantic mask.
 
-The semantic model was trained on the (https://open-earth-map.org/)[OpenEarthMap dataset]. The instance model was trained on the (https://spacenet.ai/spacenet-buildings-dataset-v2/)[SpaceNet-v2 dataset].
+The semantic model was trained on the [OpenEarthMap dataset](https://open-earth-map.org/). The instance model was trained on the [SpaceNet-v2 dataset](https://spacenet.ai/spacenet-buildings-dataset-v2/).
 
 The semantic model can detect the following classes from the image:
 - Bareland
@@ -27,7 +27,7 @@ Alternatively, you may use the final model locally by following the steps below:
 1. Ensure you have Python and Anaconda installed. We must use a conda environment for this project.
 2. Open a terminal and clone the repository with `git clone https://github.com/odil-T/Land-Cover-Classification`.
 3. Navigate to the local repository's directory and enter `conda env create -f environment.yml` to install the dependencies.
-4. Install PyTorch from the [https://pytorch.org/get-started/locally/](official site) by selecting the appropriate specifications and entering the provided command.
+4. Install PyTorch from the [official site](https://pytorch.org/get-started/locally/) by selecting the appropriate specifications and entering the provided command.
 5. Activate the conda environment using `conda activate lulc`.
 6. 
 
