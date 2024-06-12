@@ -18,7 +18,15 @@ The instance model only detects instances of the `Building` class.
 
 ### How to use the pretrained model
 
+The easiest way to use the final model is to use the following Streamlit app: 
 
+Alternatively, you may use the final model locally by following the steps below:
+
+1. Ensure you have python and anaconda installed. We must use a conda environment for this project.
+2. Open a terminal and clone the repository with `git clone https://github.com/odil-T/Land-Cover-Classification`.
+3. Navigate to the local repository's directory and enter `conda env create -f environment.yml` to install the dependencies.
+4. 
+5. Activate the conda environment using `conda activate lulc`.
 
 
 
