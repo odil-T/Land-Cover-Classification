@@ -2,7 +2,19 @@
 
 This repository contains the files necessary to run inference and training of models to perform panoptic segmentation of satellite images for land cover classification.
 
-The panoptic segmentation is performed by using semantic and instance segmentation models. The semantic segmentation model first performs segmentation on the image to predict the masks of different classes on the image. Thereafter, the instance segmentation model predicts instance masks of the `building` class and overlays them on the semantic mask.
+The panoptic segmentation is performed by using semantic and instance segmentation models. The semantic segmentation model first performs segmentation on the image to predict the masks of different classes on the image. Thereafter, the instance segmentation model predicts instance masks of the `Building` class and overlays them on the semantic mask.
+
+The semantic model can detect the following classes from the image:
+- Bareland
+- Rangeland
+- Developed space
+- Road
+- Tree
+- Water
+- Agriculture land
+- Building
+
+The instance model only detects instances of the `Building` class.
 
 ### How to use the pretrained model
 
@@ -11,7 +23,7 @@ The panoptic segmentation is performed by using semantic and instance segmentati
 
 
 
-### How to train new mdoels
+### How to train new models
 
 
 
