@@ -36,18 +36,13 @@ You can either use Docker or use the source directly.
 Please provide 650 x 650 images with 0.3m GSD resolution.
 
 
-### How to train new models [INCOMPLETE]
-
-
-
+### Additional Information
 
 The `semantic-segmentation` directory contains the files to train and infer the semantic segmentation model.
 
 The `instance-segmentation` directory contains the files to train and infer the instance segmentation model. I used some code from [rcland12's detectron2-spacenet repository](https://github.com/rcland12/detectron2-spacenet).
 
-The `object-detection` directory contains the files that were used to train and infer an object detection model that detected cars and buildings from aerial images. The object detection was needed in order to input the predicted bounding boxes to SAM to perform instance segmentation of cars and buildings. However this model model is not used anymore because it has been replaced by the instance segmentation model.
-
-
+The `object-detection` directory contains the files that were used to train and infer an object detection model that detected cars and buildings from aerial images. The object detection was needed in order to input the predicted bounding boxes to SAM to perform instance segmentation of cars and buildings. However this model is not used because it did not perform well on real satellite images and, therefore, has been replaced by the instance segmentation model.
 
 ### How to access the pretrained models
 
