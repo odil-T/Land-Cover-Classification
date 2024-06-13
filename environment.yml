@@ -11,6 +11,8 @@ dependencies:
   - scikit-learn=1.4.2
   - geojson=3.1.0
   - tqdm=4.66.4
+  - pytorch=2.3.0
+  - torchvision=0.18.0
   - torchmetrics=1.1.2
   - transformers=4.37.2
   - gdal=3.6.2
