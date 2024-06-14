@@ -2,7 +2,7 @@
 Displays validation set images with their ground truth and predicted instance masks for comparison.
 The predicted instance masks are produced by a pretrained model.
 The samples are taken randomly.
-You may specify the number of samples to display.
+You may specify the number of samples to display and the model to use.
 """
 
 import os
