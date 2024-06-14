@@ -125,6 +125,8 @@ def display_results(n, model, target_size):
 # Load pretrained model
 model = SegformerForSemanticSegmentation.from_pretrained("nvidia/mit-b2",
                                                          num_labels=num_classes).to(device)
-checkpoint = torch.load("")
+checkpoint = torch.load("",
+                        map_location=torch.device(device))
 model.load_state_dict(checkpoint["model_state_dict"])
+
 display_results(num_samples, model, target_size)
