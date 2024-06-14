@@ -110,7 +110,7 @@ def display_results(n, model, target_size):
 
 # Load pretrained model
 model = UNet(3, num_classes).to(device)
-checkpoint = torch.load("models/unet_sem_seg_2024-05-07--05-45-34/unet_sem_seg_checkpoint_epoch40.pt")
+checkpoint = torch.load("")
 model.load_state_dict(checkpoint["model_state_dict"])
 
 display_results(num_samples, model, target_size)
