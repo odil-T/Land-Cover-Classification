@@ -1,24 +1,9 @@
-"""
-Performs panoptic segmentation on a satellite image by merging inferred semantic and instance masks.
-Semantic segmentation is performed by a pretrained SegFormer model on the following classes:
-- Bareland
-- Rangeland
-- Developed space
-- Road
-- Tree
-- Water
-- Agriculture land
-- Building
-
-The `Building` class semantic mask is overlaid with the instance masks from the pretrained YOLO instance model.
-
-You may specify the image to infer, the SegFormer semantic model, and the YOLO instance model.
-"""
-
+import streamlit as st
 import torch
+from matplotlib import pyplot as plt
+
 from utils import *
 from PIL import Image
-from matplotlib import pyplot as plt
 from torch import nn
 from torchvision.transforms import ToTensor
 from transformers import SegformerForSemanticSegmentation
@@ -27,9 +12,6 @@ from ultralytics import YOLO
 
 num_classes = 9
 device = "cuda" if torch.cuda.is_available() else "cpu"
-
-# Specify path of image to infer
-image_path = r"img2.jpg"
 
 # Load SegFormer model
 segformer = SegformerForSemanticSegmentation.from_pretrained("nvidia/mit-b2",
@@ -40,7 +22,6 @@ segformer.load_state_dict(checkpoint["model_state_dict"])
 
 # Load YOLO model
 yolo = YOLO("best_models/best.pt")
-
 
 target_size = 650
 
@@ -154,18 +135,19 @@ def infer_yolo(image_path, model, target_size, blacklisted_colors):
         return predicted_image
 
 
-def display(image_path):
+def infer(image):
     """
     Displays the original image and the panoptic mask by overlaying the instance masks on top of the semantic mask.
 
     Args:
-        image_path (str): The path of the image to infer.
+
+    Returns:
     """
 
-    original_image = preprocess_image(image_path, target_size)
+    original_image = preprocess_image(image, target_size)
 
-    semantic_mask = infer_segformer(image_path, segformer, target_size, colormap)
-    instance_mask = infer_yolo(image_path, yolo, target_size, colormap)
+    semantic_mask = infer_segformer(image, segformer, target_size, colormap)
+    instance_mask = infer_yolo(image, yolo, target_size, colormap)
 
     # Merging the masks
     black_mask = np.all(instance_mask == [0, 0, 0], axis=-1)
@@ -174,17 +156,65 @@ def display(image_path):
     overlay_mask = np.expand_dims(overlay_mask, axis=-1)
     merged_mask = semantic_mask * (1 - overlay_mask) + instance_mask * overlay_mask
 
-    fig, axs = plt.subplots(1, 2, figsize=(10, 5))
-
-    axs[0].imshow(original_image)
-    axs[0].axis('off')
-    axs[0].set_title("Original Image")
-
-    axs[1].imshow(merged_mask)
-    axs[1].axis('off')
-    axs[1].set_title("Predicted Merged Mask")
-
-    plt.show()
+    return original_image, merged_mask
 
 
-display(image_path)
+st.title("Land Cover Classification")
+
+st.write("""This app performs panoptic segmentation of satellite images by performing semantic segmentation on the image 
+         and overlaying with the instance masks.""")
+
+st.write("""For best performance, use 650 x 650 satellite images with 0.3m GSD resolution.""")
+         
+st.write("""Please note that the `Building` class semantic masks are overlaid with the instance masks. 
+            The instance masks have randomly generated colors.""")
+
+
+uploaded_image = st.file_uploader("Upload your image")
+
+if uploaded_image is not None:
+    original_image, panoptic_mask = infer(uploaded_image)
+
+    col1, col2 = st.columns(2)
+    with col1:
+        st.image(original_image, caption="Original Image")
+    with col2:
+        st.image(panoptic_mask, caption="Panoptic Mask")
+
+
+    st.markdown("### Legend")
+    fig, ax = plt.subplots(figsize=(4, 2))
+
+    colors = [
+        "#000000",
+        "#800000",
+        "#00FF24",
+        "#949494",
+        "#FFFFFF",
+        "#226126",
+        "#0045FF",
+        "#4BB549",
+        "#DE1F07",
+    ]
+
+    labels = [
+        "Background",
+        "Bareland",
+        "Rangeland",
+        "Developed space",
+        "Road",
+        "Tree",
+        "Water",
+        "Agriculture land",
+        "Building"
+    ]
+
+    patches = [plt.plot([],[], marker="o", ms=10, ls="", mec=None, color=colors[i],
+                label="{:s}".format(labels[i]) )[0]  for i in range(len(labels))]
+
+    plt.legend(handles=patches, loc='center', frameon=False)
+
+    ax.axis('off')
+    ax.legend(handles=patches, loc='center', frameon=False, bbox_to_anchor=(0.5, 0.5), ncol=1)
+
+    st.pyplot(fig)
