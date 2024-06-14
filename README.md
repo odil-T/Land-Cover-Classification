@@ -26,7 +26,7 @@ You can either use Docker or use the source directly.
 
 #### From Source
 
-1. Ensure you have [Python 3.11](https://www.python.org/downloads/release/python-3119/), [Git](https://git-scm.com/), and [Anaconda](https://www.anaconda.com/products/individual) installed on your system before running the setup.
+1. Ensure you have [Git](https://git-scm.com/) and [Anaconda](https://www.anaconda.com/download/success) installed on your system before running the setup.
 2. Open a terminal and clone the repository with `git clone https://github.com/odil-T/Land-Cover-Classification`.
 
 Please provide 650 x 650 images with 0.3m GSD resolution.
