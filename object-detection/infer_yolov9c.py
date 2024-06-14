@@ -2,7 +2,7 @@
 Displays test set images with their ground truth and predicted bounding boxes for comparison.
 The predicted bounding boxes are produced by a pretrained model.
 The samples are taken randomly.
-You may specify the number of samples to display.
+You may specify the number of samples to display and the model to use.
 """
 
 import os
@@ -15,7 +15,7 @@ from ultralytics import YOLO
 # Specify number of samples to display from the test set
 num_samples = 5
 
-model = YOLO("models/yolov9c_obj_det_2024-05-10--16-11-42/weights/best.pt")
+model = YOLO("")
 
 
 def display_results(n, model):
