@@ -2,7 +2,7 @@
 Displays original images from the validation set along with their ground truth masks and predicted masks for comparison.
 The predicted masks are produced by a pretrained SegFormer model.
 The samples are taken randomly.
-You may specify the number of samples to display.
+You may specify the number of samples to display and the model to use.
 """
 
 import os
@@ -125,6 +125,6 @@ def display_results(n, model, target_size):
 # Load pretrained model
 model = SegformerForSemanticSegmentation.from_pretrained("nvidia/mit-b2",
                                                          num_labels=num_classes).to(device)
-checkpoint = torch.load("models/segformer_sem_seg_2024-05-16--14-40-45/segformer_sem_seg_checkpoint_epoch35.pt")
+checkpoint = torch.load("")
 model.load_state_dict(checkpoint["model_state_dict"])
 display_results(num_samples, model, target_size)
