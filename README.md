@@ -18,6 +18,11 @@ The semantic model can detect the following classes from the image:
 
 The instance model only detects instances of the `Building` class.
 
+Here is a sample screenshot from the Streamlit app:
+
+![image](https://github.com/odil-T/Land-Cover-Classification/assets/142138394/f6eb1410-b4a0-4748-ac16-5c45dffdf6e2)
+
+
 ### How to use the pretrained model [INCOMPLETE]
 
 You can either use Docker or use the source directly.
