@@ -54,5 +54,5 @@ The `object-detection` directory contains the files that were used to train and 
 The models are stored in [my HuggingFace repository](https://huggingface.co/odil111).
 
 The final models used are the following:
-- [SegFormer model for Semantic Segmentation](https://huggingface.co/odil111/segformer-fine-tuned-on-openearthmap/tree/main/segformer_sem_seg_2024-06-05--16-54-31)
-- [YOLOv8 model for Instance Segmentation](https://huggingface.co/odil111/yolov8m-seg-fine-tuned-on-spacenetv2/tree/main/yolov8m_inst_seg_2024-06-11--15-57-15/weights)
+- [SegFormer model for Semantic Segmentation](https://huggingface.co/odil111/segformer-fine-tuned-on-openearthmap/blob/main/segformer_sem_seg_2024-06-05--16-54-31/segformer_sem_seg_checkpoint_epoch35.pt)
+- [YOLOv8 model for Instance Segmentation](https://huggingface.co/odil111/yolov8m-seg-fine-tuned-on-spacenetv2/blob/main/yolov8m_inst_seg_2024-06-11--15-57-15/weights/best.pt)
