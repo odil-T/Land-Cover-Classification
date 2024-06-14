@@ -26,12 +26,8 @@ You can either use Docker or use the source directly.
 
 #### From Source
 
-1. Ensure you have Python and Anaconda installed. We must use a conda environment for this project.
+1. Ensure you have [Python 3.11](https://www.python.org/downloads/release/python-3119/), [Git](https://git-scm.com/), and [Anaconda](https://www.anaconda.com/products/individual) installed on your system before running the setup.
 2. Open a terminal and clone the repository with `git clone https://github.com/odil-T/Land-Cover-Classification`.
-3. Navigate to the local repository's directory and enter `conda env create -f environment.yml` to install the dependencies.
-4. Install PyTorch from the [official site](https://pytorch.org/get-started/locally/) by selecting the appropriate specifications and entering the provided command.
-5. Activate the conda environment using `conda activate lulc`.
-6. 
 
 Please provide 650 x 650 images with 0.3m GSD resolution.
 
