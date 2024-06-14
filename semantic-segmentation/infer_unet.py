@@ -2,7 +2,7 @@
 Displays original images from the validation set along with their ground truth masks and predicted masks for comparison.
 The predicted masks are produced by a pretrained U-Net model.
 The samples are taken randomly.
-You may specify the number of samples to display.
+You may specify the number of samples to display and the model to use.
 """
 
 import os
