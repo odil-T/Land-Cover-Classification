@@ -38,7 +38,7 @@ You can either use Docker or install from source directly.
 5. Once the setup is complete, you can launch the app by running `conda activate lulc` followed by `streamlit run app.py`. A new window should appear in your browser.
 6. Just close the terminal to close the app.
 
-Provide 650 x 650 images with ~0.3m GSD resolution. The image dimensions do not strictly have to be 650 x 650. If the provided image dimension is larger, the image center will be cropped and used.
+Provide 650 x 650 images with ~0.3m GSD resolution. The image dimensions do not strictly have to be 650 x 650. If the provided image dimensions are larger, the image center will be cropped and used.
 
 
 ### Additional Information
