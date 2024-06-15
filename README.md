@@ -35,9 +35,10 @@ You can either use Docker or install from source directly.
 2. Open a terminal and clone the repository with `git clone https://github.com/odil-T/Land-Cover-Classification`.
 3. Switch to the local repository's directory by entering `cd Land-Cover-Classification`.
 4. Setup the environment by running `./setup.bat` for Windows or `sh setup.bat` for Linux. This will take some time.
-5. Once the setup is complete, you can launch the app by running `conda activate lulc` followed by `streamlit run app.py`. A new window should appear in your browser.
-6. Just close the terminal to close the app.
-7. If you wish to reopen the app, then open the terminal, navigate to the local repository's directory with `cd PATH/TO/YOUR/Land-Cover-Classification` and repeat step 5.
+5. While the setup is running, you can download the pretrained [SegFormer]() and [YOLO]() models and place them in `best_models` directory.
+6. Launch the app by running `conda activate lulc` followed by `streamlit run app.py`. A new window should appear in your browser.
+7. Just close the terminal to close the app.
+8. If you wish to reopen the app, then open the terminal, navigate to the local repository's directory with `cd PATH/TO/YOUR/Land-Cover-Classification` and repeat step 5.
 
 Provide 650 x 650 images with ~0.3m GSD resolution. The image dimensions do not strictly have to be 650 x 650. If the provided image dimensions are larger, the image center will be cropped and used.
 
