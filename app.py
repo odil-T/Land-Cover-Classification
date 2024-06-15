@@ -1,3 +1,7 @@
+"""
+Streamlit app that performs panoptic segmentation of satellite images.
+"""
+
 import streamlit as st
 import torch
 from matplotlib import pyplot as plt
@@ -37,12 +41,12 @@ colormap = [
 ]
 
 
-def preprocess_image(image_path, target_size):
+def preprocess_image(image, target_size):
     """
     Resizes the image to the specified target size.
 
     Args:
-        image_path (str): The path of the image to load.
+        image: The uploaded image from Streamlit.
         target_size (int): The height and width of the image to resize to. Since both dimensions are the same, this results
         in a square image.
 
@@ -50,7 +54,7 @@ def preprocess_image(image_path, target_size):
         numpy.ndarray: The resized image.
     """
 
-    image = Image.open(image_path)
+    image = Image.open(image)
     image_width, image_height = image.size
 
     if image_width >= target_size and image_height >= target_size:
@@ -61,12 +65,12 @@ def preprocess_image(image_path, target_size):
     return image[:, :, :3]
 
 
-def infer_segformer(image_path, model, target_size, colormap):
+def infer_segformer(image, model, target_size, colormap):
     """
     Performs semantic segmentation on an image.
 
     Args:
-        image_path (str): The path of the image to infer.
+        image: The uploaded image from Streamlit to infer.
         model: PyTorch SegFormer model to use for inference.
         target_size (int): The height and width of the output mask.
         colormap (list): The colormap to indicate the colors of different classes.
@@ -77,7 +81,7 @@ def infer_segformer(image_path, model, target_size, colormap):
 
     colormap = colormap[:num_classes]
 
-    image = preprocess_image(image_path, target_size)
+    image = preprocess_image(image, target_size)
     image = ToTensor()(image).to(device)
     image = image.unsqueeze(0)
 
@@ -98,12 +102,12 @@ def infer_segformer(image_path, model, target_size, colormap):
     return pred_mask_output
 
 
-def infer_yolo(image_path, model, target_size, blacklisted_colors):
+def infer_yolo(image, model, target_size, blacklisted_colors):
     """
     Performs instance segmentation on an image.
 
     Args:
-        image_path (str): The path of the image to infer.
+        image: The uploaded image from Streamlit to infer.
         model: YOLO model to use for inference.
         target_size (int): The height and width of the output mask.
         blacklisted_colors (list): The list of colors which the instance masks cannot use.
@@ -112,13 +116,13 @@ def infer_yolo(image_path, model, target_size, blacklisted_colors):
         numpy.ndarray: The inferred instance mask.
     """
 
-    image = preprocess_image(image_path, target_size)
+    image = preprocess_image(image, target_size)
     image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
 
     results = model(image)
 
     for result in results:
-        predicted_image = np.zeros(image.shape, dtype=int)
+        predicted_image = np.zeros(image.shape, dtype=np.uint8)
 
         # Drawing predicted instance masks
         polygons = result.masks.cpu().xy
@@ -134,13 +138,15 @@ def infer_yolo(image_path, model, target_size, blacklisted_colors):
         return predicted_image
 
 
-def infer(image):
+def infer_panoptic(image):
     """
-    Displays the original image and the panoptic mask by overlaying the instance masks on top of the semantic mask.
+    Performs panoptic segmentation on an image by overlaying the instance masks on top of the semantic mask.
 
     Args:
+        image: The uploaded image from Streamlit to infer.
 
     Returns:
+        tuple: A tuple containing numpy.ndarray of the original image and the panoptic mask.
     """
 
     original_image = preprocess_image(image, target_size)
@@ -172,7 +178,7 @@ st.write("""Please note that the `Building` class semantic masks are overlaid wi
 uploaded_image = st.file_uploader("Upload your image")
 
 if uploaded_image is not None:
-    original_image, panoptic_mask = infer(uploaded_image)
+    original_image, panoptic_mask = infer_panoptic(uploaded_image)
 
     col1, col2 = st.columns(2)
     with col1:
