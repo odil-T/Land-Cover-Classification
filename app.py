@@ -1,7 +1,6 @@
 import streamlit as st
 import torch
 from matplotlib import pyplot as plt
-
 from utils import *
 from PIL import Image
 from torch import nn
