@@ -32,6 +32,7 @@ You can either use Docker or install from source directly.
 2. Open a terminal and enter `docker pull odil713/land-cover-classification:latest`.
 3. Run the Docker Image with `docker run -p 8501:8501 lulc`.
 4. Enter `localhost:8501` in your browser to open the app.
+5. You can check the running containers with `docker ps`. You can stop the container with `docker stop CONTAINER_ID`.
 
 #### From Source
 
