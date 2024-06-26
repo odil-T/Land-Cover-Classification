@@ -137,6 +137,9 @@ def infer_yolo(image_path, model, target_size, blacklisted_colors):
 
     results = model(image)
 
+    if results[0].masks is None:
+        return None
+
     for result in results:
         predicted_image = np.zeros(image.shape, dtype=int)
 
@@ -167,12 +170,18 @@ def display(image_path):
     semantic_mask = infer_segformer(image_path, segformer, target_size, colormap)
     instance_mask = infer_yolo(image_path, yolo, target_size, colormap)
 
-    # Merging the masks
-    black_mask = np.all(instance_mask == [0, 0, 0], axis=-1)
-    overlay_mask = ~black_mask
-    overlay_mask = overlay_mask.astype(np.uint8)
-    overlay_mask = np.expand_dims(overlay_mask, axis=-1)
-    merged_mask = semantic_mask * (1 - overlay_mask) + instance_mask * overlay_mask
+    if instance_mask is not None:
+
+        # Merging the masks
+        black_mask = np.all(instance_mask == [0, 0, 0], axis=-1)
+        overlay_mask = ~black_mask
+        overlay_mask = overlay_mask.astype(np.uint8)
+        overlay_mask = np.expand_dims(overlay_mask, axis=-1)
+        merged_mask = semantic_mask * (1 - overlay_mask) + instance_mask * overlay_mask
+        output_mask = merged_mask
+
+    else:
+        output_mask = semantic_mask
 
     fig, axs = plt.subplots(1, 2, figsize=(10, 5))
 
@@ -180,7 +189,7 @@ def display(image_path):
     axs[0].axis('off')
     axs[0].set_title("Original Image")
 
-    axs[1].imshow(merged_mask)
+    axs[1].imshow(output_mask)
     axs[1].axis('off')
     axs[1].set_title("Predicted Merged Mask")
 

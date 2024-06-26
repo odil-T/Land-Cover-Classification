@@ -121,6 +121,9 @@ def infer_yolo(image, model, target_size, blacklisted_colors):
 
     results = model(image)
 
+    if results[0].masks is None:
+        return None
+
     for result in results:
         predicted_image = np.zeros(image.shape, dtype=np.uint8)
 
@@ -154,14 +157,18 @@ def infer_panoptic(image):
     semantic_mask = infer_segformer(image, segformer, target_size, colormap)
     instance_mask = infer_yolo(image, yolo, target_size, colormap)
 
-    # Merging the masks
-    black_mask = np.all(instance_mask == [0, 0, 0], axis=-1)
-    overlay_mask = ~black_mask
-    overlay_mask = overlay_mask.astype(np.uint8)
-    overlay_mask = np.expand_dims(overlay_mask, axis=-1)
-    merged_mask = semantic_mask * (1 - overlay_mask) + instance_mask * overlay_mask
+    if instance_mask is not None:
 
-    return original_image, merged_mask
+        # Merging the masks
+        black_mask = np.all(instance_mask == [0, 0, 0], axis=-1)
+        overlay_mask = ~black_mask
+        overlay_mask = overlay_mask.astype(np.uint8)
+        overlay_mask = np.expand_dims(overlay_mask, axis=-1)
+        merged_mask = semantic_mask * (1 - overlay_mask) + instance_mask * overlay_mask
+
+        return original_image, merged_mask
+
+    return original_image, semantic_mask
 
 
 st.title("Land Cover Classification")
