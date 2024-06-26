@@ -151,9 +151,31 @@ def infer_yolo(image_path, model, target_size, blacklisted_colors):
             color = random_color(blacklisted_colors)
             blacklisted_colors.append(color)
 
-            cv2.fillPoly(predicted_image, [polygon], color)
+            try:
+                cv2.fillPoly(predicted_image, [polygon], color)
+
+            except cv2.error:
+                print(f"\033[91mWarning: cv2.error encountered. Skipping instance segmentation for patch {image_path}.\033[0m")
+                return None
 
         return predicted_image
+
+
+def smoothen_borders(mask):
+    smoothed_mask = np.zeros_like(mask)
+
+    for color in colormap:
+        feature_mask = cv2.inRange(mask, np.array(color), np.array(color))
+
+        contours, _ = cv2.findContours(feature_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+
+        for contour in contours:
+            epsilon = 0.0001 * cv2.arcLength(contour, True)  # Adjust epsilon as needed
+            approx = cv2.approxPolyDP(contour, epsilon, True)
+
+            cv2.drawContours(smoothed_mask, [approx], -1, color, thickness=cv2.FILLED)
+
+    return smoothed_mask
 
 
 def infer_both(image_path):
@@ -175,9 +197,9 @@ def infer_both(image_path):
         overlay_mask = np.expand_dims(overlay_mask, axis=-1)
         merged_mask = semantic_mask * (1 - overlay_mask) + instance_mask * overlay_mask
 
-        return merged_mask
+        return smoothen_borders(merged_mask)
 
-    return semantic_mask
+    return smoothen_borders(semantic_mask)
 
 
 def save_rgb_image_pillow(rgb_array, output_path):
@@ -188,13 +210,14 @@ def save_rgb_image_pillow(rgb_array, output_path):
 create_output_directory(masks_dir)
 
 for patch_name in os.listdir(patches_dir):
-
     patch_path = f"{patches_dir}/{patch_name}"
+    print(f"Now processing {patch_path}", end='')
 
     mask = infer_both(patch_path)
     mask_path = f"{masks_dir}/{patch_name}"
 
-    print(f"Now saving {mask_path}")
     save_rgb_image_pillow(mask, mask_path)
+    print(f"Saved mask to {mask_path}")
+    print()
 
 print("Patch inference completed.")
