@@ -33,6 +33,7 @@ def combine_patches_to_tiff(masks_dir, original_tif_path, output_tif_path, patch
 
             # Read the patch as an RGB image
             patch = gdal_array.LoadFile(patch_filename)
+            patch = patch.transpose(1, 2, 0)
 
             # Get the dimensions of the patch
             patch_height, patch_width, _ = patch.shape
