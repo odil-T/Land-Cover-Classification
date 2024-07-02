@@ -38,6 +38,12 @@ def combine_patches_to_tiff(masks_dir, original_tif_path, output_tif_path, patch
             # Get the dimensions of the patch
             patch_height, patch_width, _ = patch.shape
 
+            # Slice the terminal patches to fit the original .tif image dimensions
+            if x + patch_width > x_size:
+                patch = patch[:, :x_size % patch_width, :]
+            if y + patch_height > y_size:
+                patch = patch[:y_size % patch_height, :, :]
+
             # Place the patch in the correct position in the full mask array
             full_mask[y:y + patch_height, x:x + patch_width, :] = patch
 
