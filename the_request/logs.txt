@@ -1,10 +1,10 @@
 C:\Users\a.azamov\.conda\envs\lulc\python.exe C:\Users\a.azamov\PycharmProjects\Land-Cover-Classification\masks2tif_experimental.py 
 Traceback (most recent call last):
-  File "C:\Users\a.azamov\PycharmProjects\Land-Cover-Classification\masks2tif_experimental.py", line 61, in <module>
+  File "C:\Users\a.azamov\PycharmProjects\Land-Cover-Classification\masks2tif_experimental.py", line 62, in <module>
     combine_patches_to_tiff(masks_dir, original_tif_path, output_tif_path, patch_size)
-  File "C:\Users\a.azamov\PycharmProjects\Land-Cover-Classification\masks2tif_experimental.py", line 41, in combine_patches_to_tiff
+  File "C:\Users\a.azamov\PycharmProjects\Land-Cover-Classification\masks2tif_experimental.py", line 42, in combine_patches_to_tiff
     full_mask[y:y + patch_height, x:x + patch_width, :] = patch
     ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-ValueError: could not broadcast input array from shape (3,650,650) into shape (650,650,3)
+ValueError: could not broadcast input array from shape (650,650,3) into shape (650,448,3)
 
 Process finished with exit code 1
