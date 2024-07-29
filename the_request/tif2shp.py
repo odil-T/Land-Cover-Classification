@@ -1,24 +1,63 @@
-from osgeo import ogr
-from osgeo import gdal
+import os
+import fiona
+import rasterio
 
 
-tif_path = 'Tashkent_images/j_10_030_mask.tif'
-shp_path = 'Tashkent_images/j_10_030_mask.shp'
+def shape2mask(raster_folder, raster_file, shape_file, mask_file):
+    shape_path = os.path.join(raster_folder, shape_file)
+    raster_path = os.path.join(raster_folder, raster_file)
+    mask_path = os.path.join(raster_folder, mask_file)
+
+    with fiona.open(shape_path, "r") as shapefile, \
+         rasterio.open(raster_path) as src, \
+         rasterio.open(mask_path, "w", **src.meta) as dest:
+
+        shapes = [feature["geometry"] for feature in shapefile]
+        out_image, out_transform = rasterio.mask.mask(src, shapes, filled=True)
+
+        dest.write(out_image)
+
+        dest_meta = dest.meta.copy()
+        dest_meta.update(height=out_image.shape[1], width=out_image.shape[2], transform=out_transform, driver='GTiff')
+        dest.write(out_image)
 
 
-def tif_to_shapefile(tif_path, shp_path):
-    src_ds = gdal.Open(tif_path)
-    src_band = src_ds.GetRasterBand(1)
 
-    driver = ogr.GetDriverByName("ESRI Shapefile")
-    dst_ds = driver.CreateDataSource(shp_path)
-    dst_layer = dst_ds.CreateLayer("mask", srs=None)
-    new_field = ogr.FieldDefn('ID', ogr.OFTInteger)
-    dst_layer.CreateField(new_field)
-    gdal.Polygonize(src_band, None, dst_layer, 0, [], callback=None)
+# ChatGPT suggestion -----------------------------------------------------------------------
+import os
+import rasterio
+import rasterio.features
+import rasterio.mask
+from shapely.geometry import shape, mapping
+import fiona
+from fiona.crs import from_epsg
 
-    dst_ds = None
-    src_ds = None
+def mask2shape(raster_folder, mask_file, shape_file, epsg_code):
+    mask_path = os.path.join(raster_folder, mask_file)
+    shape_path = os.path.join(raster_folder, shape_file)
 
+    # Read the mask file
+    with rasterio.open(mask_path) as src:
+        image = src.read(1)  # Read the first band, adjust if multiple bands
+        mask = image != 0  # Assuming non-zero values are the mask
 
-tif_to_shapefile(tif_path, shp_path)
+        # Extract shapes (polygons) from the raster
+        shapes = rasterio.features.shapes(image, mask=mask, transform=src.transform)
+
+        # Define schema for shapefile
+        schema = {
+            'geometry': 'Polygon',
+            'properties': {'value': 'int'}
+        }
+
+        # Write shapes to shapefile
+        with fiona.open(shape_path, 'w', driver='ESRI Shapefile', crs=from_epsg(epsg_code), schema=schema) as shp:
+            for geom, value in shapes:
+                if value != 0:  # Write only non-zero shapes
+                    shp.write({
+                        'geometry': mapping(shape(geom)),
+                        'properties': {'value': int(value)}
+                    })
+
+# Example usage:
+# mask2shape('path/to/raster_folder', 'mask.tif', 'output_shape.shp', 4326)
